@@ -225,14 +225,21 @@ Q1. What metric will you use? Why?
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+Train_COVID$SURVIVED_bin <-1*(Train_COVID$SURVIVED=="yes")
+Train_COVID$PNEUMONIA <- ifelse(is.na(Train_COVID$PNEUMONIA), "yes", Train_COVID$PNEUMONIA)
+
+
+covid_model1 <- glm(SURVIVED_bin ~ AGE_TRUNK + FEMALE, data = Train_COVID, family = binomial)
+covid_model2 <- glm(SURVIVED_bin ~ AGE_TRUNK + FEMALE + PNEUMONIA + HIPERTENSION + CARDIOVASCULAR , data = Train_COVID, family = binomial)
+
+summary(covid_model1)
+summary(covid_model2)
 ```
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
+I tried to fit 2 model so I can answer the second question. For first model I used the demographics characteristics which are age and sex. The second model I added the comorbidities factors. 
 
 
 ~~~
@@ -241,15 +248,24 @@ Q2. What was your best performing model?
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+library(caret)
+
+predictions1 <- predict(covid_model1, data = Train_COVID, type = "response")
+logit_pred1 <- ifelse(predictions1 > 0.5,1,0)
+ConMat1 = table(Train_COVID$SURVIVED_bin, logit_pred1)
+print(ConMat1)
+
+predictions2 <- predict(covid_model2, data = Train_COVID, type = "response")
+logit_pred2 <- ifelse(predictions2 > 0.5,1,0)
+ConMat2 = table(Train_COVID$SURVIVED_bin, logit_pred2)
+print(ConMat2)
+
 ```
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
-
+From the confusion matrix above, my second model seems better than my first model. Because the false positive and false negative is smaller than the first model.
 
 ~~~
 
@@ -258,15 +274,11 @@ Q3. Explain how you got the model in detail.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+
 ```
 
 Your answer:
-
-~~~
-Please write your answer in full sentences.
-
+By our 
 
 ~~~
 
@@ -274,8 +286,42 @@ Q4. Based on your model, what factor seems to be important in deciding if a pati
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+TN1 <- 1438
+FP1 <- 21676
+FN1 <- 2200
+TP1 <- 289258
+
+accuracy1 <- (TP1 + TN1) / (TP1 + TN1 + FP1 + FN1)
+precision1 <- TP1 / (TP1 + FP1)
+sensitivity1 <- TP1 / (TP1 + FN1)
+specificity1 <- TN1 / (TN1 + FP1)
+f1_score1 <- 2 * (precision1 * sensitivity1) / (precision1 + sensitivity1)
+
+cat("Metrics for logit_pred1:\n")
+cat("Accuracy: ", accuracy1, "\n")
+cat("Precision: ", precision1, "\n")
+cat("Sensitivity: ", sensitivity1, "\n")
+cat("Specificity: ", specificity1, "\n")
+cat("F1 Score: ", f1_score1, "\n")
+
+TN2 <- 7474
+FP2 <- 15640
+FN2 <- 5478
+TP2 <- 285980
+
+accuracy2 <- (TP2 + TN2) / (TP2 + TN2 + FP2 + FN2)
+precision2 <- TP2 / (TP2 + FP2)
+sensitivity2 <- TP2 / (TP2 + FN2)
+specificity2 <- TN2 / (TN2 + FP2)
+f1_score2 <- 2 * (precision2 * sensitivity2) / (precision2 + sensitivity2)
+
+cat("\nMetrics for logit_pred2:\n")
+cat("Accuracy: ", accuracy2, "\n")
+cat("Precision: ", precision2, "\n")
+cat("Sensitivity: ", sensitivity2, "\n")
+cat("Specificity: ", specificity2, "\n")
+cat("F1 Score: ", f1_score2, "\n")
+
 ```
 
 Your answer:
@@ -296,8 +342,10 @@ In this problem, you will develop a model to predict whether a given car gets hi
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+library(ISLR2)
+data("Auto")
+
+Auto <- data.frame(Auto %>% mutate(mpg01 = ifelse(mpg > median(mpg), 1, 0)))
 ```
 
 Your answer:
@@ -310,6 +358,27 @@ Please write your answer in full sentences.
 
 
 (b) Explore the data graphically in order to investigate the association between `mpg01` and the other features. Which other features seem most likely to be useful in predicting `mpg01`? Scatterplots and boxplots may be useful tools to answer this question. Describe your findings.
+
+```{r}
+ggplot(Auto, aes(cylinders, mpg)) +
+  geom_boxplot(aes(group = cylinders)) +
+  labs(title = "Boxplot of mpg by cylinders",
+       x = "Cylinders",
+       y = "Miles Per Gallon")
+
+ggplot(Auto, aes(horsepower, mpg)) +
+  geom_point(aes()) +
+  labs(title = "Scatter Plot of mpg by horsepower",
+       x = "Horsepower",
+       y = "Miles Per Gallon")
+
+ggplot(Auto, aes(acceleration, mpg)) +
+  geom_point(aes(color = cylinders)) +
+  labs(title = "Scatter Plot of mpg by acceleration",
+       x = "Acceleration",
+       y = "Miles Per Gallon")
+```
+
 
 (c) Split the data into a training set and a test set.
 
